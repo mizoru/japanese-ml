@@ -124,10 +124,10 @@ def main(
         wandb.init(project='pattern_classification', name=run_name+f'_{run}', config=config)
         print(f'Run: {run}')
         learn = get_learner(dls, model_func, wd, fp16, act_fn, sa, sym, pool, pretrained, cbs=cbs+[WandbCallback()])
-        if dump: print(learn.model)#; exit()
-        #learn.fit_flat_cos(epochs, lr, wd=wd, cbs=cbs)
-        # learn.save(run_name, with_opt=True)
-        # wandb.save('/models'+run_name+'.pth', policy='now')
+        if dump: print(learn.model); exit()
+        learn.fit_flat_cos(epochs, lr, wd=wd, cbs=cbs)
+        learn.save(run_name, with_opt=True)
+        wandb.save('/models'+run_name+'.pth', policy='now')
         COMMON_WORDS = ["もう","わかる","バック","社会","読む","入る","来る","トラック","によって","仕事","同じ","数","記事","いただく","彼","大","国","等","くださる","回","三","とか","君","法","K","意味","力","以上","J","会社","j","よる","ほど","そんな","人間","現在","作る","企業","氏","ちょっと","間","可能","感じる","出す","研究","投稿","他","アメリカ","しれる","けれども","リンク","今回","いたす","高い","次","ら","言葉","こういう","おく", "わたし","熱く","深い"]
         prediction_labels = labels[labels.type=='dict2 male']
         prediction_labels[prediction_labels["path"].str.contains("|".join('/' + word + '[\.-]' for word in COMMON_WORDS))]
