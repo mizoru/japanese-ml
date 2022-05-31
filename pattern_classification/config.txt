@@ -1,0 +1,4 @@
+--lr 3e-3
+--lr 1e-3
+--arch xresnet18
+
