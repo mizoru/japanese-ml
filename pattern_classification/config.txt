@@ -1,4 +1,5 @@
---lr 1e-3
 --arch xresnet18
 --bs 32
+--lr 1e-2
 --lr 3e-3
+--lr 1e-3

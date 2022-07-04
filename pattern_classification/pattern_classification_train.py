@@ -121,7 +121,7 @@ def main(
     name = f'{arch}_bs-{bs}_lr-{lr}_{opt}_mels-{n_mels}_mom-{mom}_{("","pretrained")[pretrained]}'
     for run in range(runs):
         run_name = name + f'_{run}'
-        wandb.init(project='pattern_classification', name=run_name+f'_{run}', config=config)
+        wandb.init(project='pattern_classification', name=run_name, config=config)
         print(f'Run: {run}')
         learn = get_learner(dls, model_func, wd, fp16, act_fn, sa, sym, pool, pretrained, cbs=cbs+[WandbCallback()])
         if dump: print(learn.model); exit()
@@ -131,14 +131,14 @@ def main(
         
         COMMON_WORDS = ["もう","わかる","バック","社会","読む","入る","来る","トラック","によって","仕事","同じ","数","記事","いただく","彼","大","国","等","くださる","回","三","とか","君","法","K","意味","力","以上","J","会社","j","よる","ほど","そんな","人間","現在","作る","企業","氏","ちょっと","間","可能","感じる","出す","研究","投稿","他","アメリカ","しれる","けれども","リンク","今回","いたす","高い","次","ら","言葉","こういう","おく", "わたし","熱く","深い"]
         prediction_labels = labels[labels.type=='dict2 male']
-        prediction_labels[prediction_labels["path"].str.contains("|".join('/' + word + '[\.-]' for word in COMMON_WORDS))]
-        test_dl = learn.dls.test_dl(prediction_labels[:2])
+        prediction_labels = prediction_labels[prediction_labels["path"].str.contains("|".join('/' + word + '[\.-]' for word in COMMON_WORDS))]
+        test_dl = learn.dls.test_dl(prediction_labels)
         specs, probss, _, ids = learn.get_preds(dl=test_dl, with_decoded=True, with_input=True)
-        test_data_at = wandb.Artifact("test_samples_" + str(wandb.run.id), type="predictions")
+        
         columns = ["Path","Audio", "Spec", "Pattern", "Predicted", *[f"Prob_{v}" for v in learn.dls.vocab]]
         test_table = wandb.Table(columns=columns)
         for (p, pat), spec, id, probs in zip(prediction_labels.iloc[:, 0:2].values, specs, ids, probss):
-            test_table.add_data(p, wandb.Audio(p), wandb.Image(spec.numpy()), pat, learn.dls.vocab[id], *probs.numpy())    
-        test_data_at.add(test_table, "predictions")
-        wandb.run.log_artifact(test_data_at) 
+            test_table.add_data(p, wandb.Audio(p), wandb.Image(spec.numpy()), pat, learn.dls.vocab[id], *[f"{prob:.4f}" for prob in probs.numpy()])
+        wandb.run.log({f"Prediction table {run_name}": test_table})
         wandb.finish()
+        exit()
